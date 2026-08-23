@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="googlebot" content="noindex, nofollow">
+<title>Mokobara × AI Voice — Conversion Analysis | Bitespeed</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & BASE ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --blue: #026FFD; --blue-hover: #0158CC; --blue-light: #358CFE; --blue-subtle: #EBF3FF;
+  --ink: #090A14; --bg: #FAFAFA; --surface: #FFFFFF; --border: #E2E2E2;
+  --muted: #758696; --purple: #5B21B6; --success: #16A34A; --warning: #D97706; --danger: #DC2626;
+  --radius: 12px; --radius-sm: 8px; --shadow: 0 1px 4px rgba(9,10,20,.06), 0 4px 16px rgba(9,10,20,.08);
+  --shadow-sm: 0 1px 3px rgba(9,10,20,.08);
+  --slide-w: 1280px; --slide-h: 720px;
+}
+html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1a2e; font-family: 'Inter', system-ui, sans-serif; color: var(--ink); }
+
+/* ── DECK SHELL ── */
+#deck { position: fixed; inset: 0; display: flex; flex-direction: column; }
+#viewport { flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+.slide-stage { width: var(--slide-w); height: var(--slide-h); position: relative; transform-origin: center; }
+
+/* ── SLIDES ── */
+.slide {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  background: var(--bg); display: none; flex-direction: column;
+  padding: 56px 72px; overflow: hidden;
+  opacity: 0; transition: opacity .3s ease;
+}
+.slide.active { display: flex; opacity: 1; }
+.slide.prev { display: flex; opacity: 0; }
+
+/* ── PROGRESS BAR ── */
+#progress-bar { height: 3px; background: var(--border); position: relative; flex-shrink: 0; }
+#progress-fill { height: 100%; background: var(--blue); transition: width .3s ease; }
+
+/* ── NAV BAR ── */
+#nav-bar {
+  height: 44px; background: rgba(9,10,20,.92); backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px; flex-shrink: 0; gap: 16px;
+}
+#slide-counter { color: #fff; font-size: 12px; font-weight: 500; opacity: .7; }
+#nav-hints { color: rgba(255,255,255,.4); font-size: 11px; }
+#nav-controls { display: flex; gap: 8px; }
+.nav-btn {
+  background: rgba(255,255,255,.1); border: none; color: #fff; cursor: pointer;
+  padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 500;
+  transition: background .15s; font-family: inherit;
+}
+.nav-btn:hover { background: rgba(255,255,255,.2); }
+#overview-btn { background: rgba(2,111,253,.3); }
+#overview-btn:hover { background: rgba(2,111,253,.5); }
+
+/* ── OVERVIEW GRID ── */
+#overview {
+  display: none; position: fixed; inset: 0; background: #0d0d1a;
+  overflow-y: auto; padding: 40px; z-index: 100;
+}
+#overview.visible { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.overview-thumb {
+  background: var(--surface); border-radius: var(--radius-sm); overflow: hidden;
+  cursor: pointer; border: 2px solid transparent; transition: border-color .2s, transform .15s;
+  aspect-ratio: 16/9; position: relative;
+}
+.overview-thumb:hover { border-color: var(--blue); transform: scale(1.02); }
+.overview-thumb.active-thumb { border-color: var(--blue); }
+.thumb-label {
+  position: absolute; bottom: 0; left: 0; right: 0; background: rgba(9,10,20,.8);
+  color: #fff; font-size: 10px; padding: 6px 8px; font-weight: 500;
+}
+.thumb-num { color: var(--blue-light); margin-right: 4px; }
+.overview-close {
+  position: fixed; top: 16px; right: 16px; background: var(--blue); color: #fff;
+  border: none; border-radius: 8px; padding: 8px 16px; cursor: pointer; font-size: 13px;
+  font-weight: 600; font-family: inherit; z-index: 101;
+}
+
+/* ── TYPOGRAPHY ── */
+.slide-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--blue); margin-bottom: 12px; }
+.slide-title { font-size: 40px; font-weight: 800; line-height: 1.15; color: var(--ink); }
+.slide-title.xl { font-size: 52px; }
+.slide-subtitle { font-size: 18px; color: var(--muted); font-weight: 400; line-height: 1.6; margin-top: 16px; }
+.slide-heading { font-size: 32px; font-weight: 800; line-height: 1.2; color: var(--ink); }
+.body-text { font-size: 16px; color: var(--ink); line-height: 1.7; }
+.muted { color: var(--muted); }
+.blue { color: var(--blue); }
+.danger { color: var(--danger); }
+.success-color { color: var(--success); }
+.warning-color { color: var(--warning); }
+
+/* ── LAYOUT HELPERS ── */
+.cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; flex: 1; align-items: start; }
+.cols-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+.flex-col { display: flex; flex-direction: column; }
+.flex-row { display: flex; flex-direction: row; align-items: center; gap: 16px; }
+.gap-8 { gap: 8px; }
+.gap-16 { gap: 16px; }
+.gap-24 { gap: 24px; }
+.mt-8 { margin-top: 8px; }
+.mt-16 { margin-top: 16px; }
+.mt-24 { margin-top: 24px; }
+.mt-32 { margin-top: 32px; }
+.flex-1 { flex: 1; }
+
+/* ── CARD ── */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow-sm); }
+.card-sm { padding: 16px; }
+
+/* ── KPI CARDS ── */
+.kpi-row { display: grid; gap: 20px; margin-top: 32px; }
+.kpi-row.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.kpi-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 24px 20px; box-shadow: var(--shadow-sm); text-align: center;
+}
+.kpi-number { font-size: 40px; font-weight: 900; color: var(--ink); line-height: 1; }
+.kpi-label { font-size: 12px; font-weight: 600; color: var(--muted); margin-top: 8px; text-transform: uppercase; letter-spacing: .06em; }
+.kpi-sub { font-size: 12px; color: var(--muted); margin-top: 6px; }
+.kpi-card.highlight { border-color: var(--blue); background: var(--blue-subtle); }
+.kpi-card.highlight .kpi-number { color: var(--blue); }
+.kpi-card.danger-card { border-color: #fecaca; background: #fff5f5; }
+.kpi-card.danger-card .kpi-number { color: var(--danger); }
+
+/* ── BIG NUMBER HERO ── */
+.hero-number { font-size: 120px; font-weight: 900; line-height: 1; color: var(--blue); }
+.hero-label { font-size: 22px; font-weight: 600; color: var(--ink); margin-top: 8px; }
+.hero-sub { font-size: 15px; color: var(--muted); margin-top: 8px; }
+
+/* ── FUNNEL ── */
+.funnel { display: flex; flex-direction: column; gap: 6px; flex: 1; justify-content: center; }
+.funnel-row { display: flex; align-items: center; gap: 16px; }
+.funnel-label { font-size: 13px; font-weight: 600; color: var(--ink); width: 200px; text-align: right; flex-shrink: 0; }
+.funnel-bar-wrap { flex: 1; background: var(--bg); border-radius: 6px; height: 40px; overflow: hidden; border: 1px solid var(--border); }
+.funnel-bar { height: 100%; border-radius: 6px; display: flex; align-items: center; padding: 0 14px; transition: width .6s ease; }
+.funnel-bar span { font-size: 13px; font-weight: 700; color: #fff; }
+.funnel-pct { font-size: 12px; color: var(--muted); width: 50px; flex-shrink: 0; }
+.funnel-drop { font-size: 11px; color: var(--danger); padding-left: 4px; }
+
+/* ── LEAK SLIDE ── */
+.leak-header { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; }
+.leak-badge {
+  background: #fff1f2; border: 1px solid #fecaca; color: var(--danger);
+  font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  padding: 4px 12px; border-radius: 999px;
+}
+.leak-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; flex: 1; }
+.root-cause-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.root-cause-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; line-height: 1.5; }
+.root-cause-list li::before { content: '→'; color: var(--danger); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+.dev-fix-box {
+  background: #f0fdf4; border: 1px solid #86efac; border-left: 4px solid var(--success);
+  border-radius: var(--radius-sm); padding: 16px 18px; margin-top: 20px;
+}
+.dev-fix-label { font-size: 11px; font-weight: 700; color: var(--success); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 8px; }
+.dev-fix-box ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.dev-fix-box ul li { font-size: 13px; line-height: 1.4; display: flex; gap: 8px; }
+.dev-fix-box ul li::before { content: '✓'; color: var(--success); font-weight: 700; flex-shrink: 0; }
+.audio-block { margin-bottom: 16px; }
+.audio-label { font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .06em; }
+audio { width: 100%; height: 36px; border-radius: 8px; }
+.explore-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--blue); font-size: 13px; font-weight: 600; text-decoration: none;
+  border: 1px solid var(--blue); padding: 7px 16px; border-radius: 8px;
+  margin-top: 12px; transition: background .15s;
+}
+.explore-link:hover { background: var(--blue-subtle); }
+
+/* ── QUOTE/TRANSCRIPT BUBBLE ── */
+.transcript-bubble {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 20px 24px; position: relative; box-shadow: var(--shadow-sm);
+}
+.transcript-bubble::before {
+  content: '"'; font-size: 64px; color: var(--blue-subtle); font-weight: 900;
+  position: absolute; top: -8px; left: 16px; line-height: 1;
+}
+.transcript-text { font-size: 15px; line-height: 1.7; font-style: italic; padding-top: 12px; color: var(--ink); }
+.transcript-meta { font-size: 11px; color: var(--muted); margin-top: 10px; font-weight: 500; }
+
+/* ── ROADMAP ── */
+.roadmap { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; flex: 1; }
+.roadmap-col { display: flex; flex-direction: column; gap: 10px; }
+.roadmap-phase { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; padding: 6px 12px; border-radius: 6px; margin-bottom: 4px; }
+.roadmap-phase.p0 { background: #fff1f2; color: var(--danger); }
+.roadmap-phase.p1 { background: #fffbeb; color: var(--warning); }
+.roadmap-phase.p2 { background: var(--blue-subtle); color: var(--blue); }
+.roadmap-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; font-size: 13px; line-height: 1.4; }
+.roadmap-item strong { display: block; font-weight: 600; margin-bottom: 2px; }
+.roadmap-item span { color: var(--muted); font-size: 12px; }
+
+/* ── TITLE SLIDE SPECIFIC ── */
+.slide-title-deck { background: var(--ink); }
+.slide-title-deck .brand-bar {
+  display: flex; align-items: center; gap: 12px; margin-bottom: auto;
+}
+.brand-pill {
+  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12);
+  color: rgba(255,255,255,.7); font-size: 12px; font-weight: 600;
+  padding: 5px 14px; border-radius: 999px; letter-spacing: .06em;
+}
+.brand-sep { color: rgba(255,255,255,.2); font-size: 18px; }
+.title-deck-eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--blue-light); margin-bottom: 20px; }
+.title-deck-main { font-size: 54px; font-weight: 900; color: #fff; line-height: 1.1; }
+.title-deck-main em { font-style: normal; color: var(--blue-light); }
+.title-deck-sub { font-size: 17px; color: rgba(255,255,255,.5); margin-top: 20px; line-height: 1.6; font-weight: 400; }
+.title-deck-meta { display: flex; gap: 24px; margin-top: 40px; }
+.meta-chip { display: flex; flex-direction: column; gap: 3px; }
+.meta-chip-value { font-size: 22px; font-weight: 800; color: #fff; }
+.meta-chip-label { font-size: 11px; color: rgba(255,255,255,.4); font-weight: 500; text-transform: uppercase; letter-spacing: .08em; }
+.meta-divider { width: 1px; background: rgba(255,255,255,.1); }
+.slide-title-deck .slide-decoration {
+  position: absolute; right: 0; top: 0; bottom: 0; width: 380px;
+  background: linear-gradient(135deg, rgba(2,111,253,.15) 0%, rgba(91,33,182,.1) 100%);
+  border-left: 1px solid rgba(2,111,253,.2);
+  display: flex; align-items: center; justify-content: center;
+}
+.deco-circle {
+  width: 280px; height: 280px; border-radius: 50%;
+  border: 2px solid rgba(2,111,253,.3);
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.deco-circle::before {
+  content: ''; position: absolute; inset: 20px; border-radius: 50%;
+  border: 1px solid rgba(2,111,253,.2);
+}
+.deco-inner { text-align: center; }
+.deco-pct { font-size: 60px; font-weight: 900; color: var(--danger); }
+.deco-pct-label { font-size: 12px; color: rgba(255,255,255,.5); font-weight: 500; text-transform: uppercase; letter-spacing: .08em; margin-top: 4px; }
+
+/* ── SECTION DIVIDER ── */
+.slide-section { background: var(--blue); justify-content: center; align-items: flex-start; }
+.slide-section .section-num { font-size: 80px; font-weight: 900; color: rgba(255,255,255,.08); line-height: 1; margin-bottom: -16px; }
+.slide-section .section-title { font-size: 48px; font-weight: 900; color: #fff; line-height: 1.15; }
+.slide-section .section-sub { font-size: 17px; color: rgba(255,255,255,.65); margin-top: 14px; line-height: 1.6; }
+.slide-section .section-tag { background: rgba(255,255,255,.15); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; padding: 5px 14px; border-radius: 999px; display: inline-flex; margin-bottom: 16px; }
+
+/* ── PILL / TAG ── */
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+.pill-blue { background: var(--blue-subtle); color: var(--blue); }
+.pill-danger { background: #fff1f2; color: var(--danger); }
+.pill-success { background: #f0fdf4; color: var(--success); }
+.pill-warning { background: #fffbeb; color: var(--warning); }
+.pill-purple { background: #f5f3ff; color: var(--purple); }
+
+/* ── BULLET LIST ── */
+.bullet-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.bullet-list li { display: flex; gap: 12px; font-size: 15px; line-height: 1.55; }
+.bullet-list li .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); flex-shrink: 0; margin-top: 7px; }
+.bullet-list li.warn .dot { background: var(--warning); }
+.bullet-list li.danger-item .dot { background: var(--danger); }
+.bullet-list li.ok .dot { background: var(--success); }
+
+/* ── INLINE BAR CHART ── */
+.bar-chart { display: flex; flex-direction: column; gap: 14px; }
+.bar-chart-row { display: flex; align-items: center; gap: 12px; }
+.bar-chart-label { font-size: 13px; font-weight: 500; width: 160px; flex-shrink: 0; text-align: right; }
+.bar-chart-track { flex: 1; background: var(--bg); border-radius: 4px; height: 28px; overflow: hidden; border: 1px solid var(--border); }
+.bar-chart-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding: 0 10px; }
+.bar-chart-fill span { font-size: 12px; font-weight: 700; color: #fff; }
+.bar-chart-val { font-size: 13px; font-weight: 700; color: var(--ink); width: 40px; }
+
+/* ── CALLOUT BOX ── */
+.callout { border-radius: var(--radius-sm); padding: 14px 18px; font-size: 14px; line-height: 1.5; }
+.callout-blue { background: var(--blue-subtle); border-left: 4px solid var(--blue); color: var(--ink); }
+.callout-warning { background: #fffbeb; border-left: 4px solid var(--warning); }
+.callout-danger { background: #fff1f2; border-left: 4px solid var(--danger); }
+.callout-muted { background: #f8f9fa; border-left: 4px solid var(--border); color: var(--muted); font-style: italic; font-size: 13px; }
+
+/* ── PRINT ── */
+@media print {
+  body { background: white; overflow: visible; }
+  #nav-bar, #overview { display: none !important; }
+  #viewport { overflow: visible; display: block; height: auto; }
+  .slide-stage { transform: none !important; width: 100vw; height: auto; }
+  .slide { display: flex !important; opacity: 1 !important; position: relative; page-break-after: always; height: 100vh; }
+}
+</style>
+</head>
+<body>
+
+<div id="deck">
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+  <div id="viewport">
+    <div class="slide-stage" id="stage">
+
+      <!-- ════════════════════════════════════════════════
+           SLIDE 1 — TITLE
+      ════════════════════════════════════════════════ -->
+      <div class="slide slide-title-deck active" id="slide-1">
+        <div class="brand-bar">
+          <img src="assets/bitespeed-logo.png" alt="Bitespeed" style="height:30px;border-radius:6px;">
+          <span class="brand-sep">×</span>
+          <img src="assets/mokobara-logo.png" alt="Mokobara" style="height:38px;border-radius:50%;">
+          <span class="brand-pill" style="margin-left:auto;background:rgba(220,38,38,.15);border-color:rgba(220,38,38,.25);color:#fca5a5;">INTERNAL READOUT</span>
+        </div>
+
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding-right:400px;">
+          <div class="title-deck-eyebrow">AI Voice · Abandoned Cart · 27 Jun – 3 Jul 2026</div>
+          <div class="title-deck-main">Mokobara × AI Voice —<br><em>Where Conversion Leaks</em><br>& How We Fix It</div>
+          <div class="title-deck-sub">A deep-dive across 400 answered calls: what works, what wastes spend,<br>and the concrete fixes that recover ROI.</div>
+          <div class="title-deck-meta">
+            <div class="meta-chip"><div class="meta-chip-value">400</div><div class="meta-chip-label">Answered Calls</div></div>
+            <div class="meta-divider"></div>
+            <div class="meta-chip"><div class="meta-chip-value">18</div><div class="meta-chip-label">Orders Placed</div></div>
+            <div class="meta-divider"></div>
+            <div class="meta-chip"><div class="meta-chip-value">4.5%</div><div class="meta-chip-label">Blended Conv.</div></div>
+            <div class="meta-divider"></div>
+            <div class="meta-chip" style="color:var(--danger);"><div class="meta-chip-value" style="color:#fca5a5;">~60%</div><div class="meta-chip-label">Never a Convo</div></div>
+          </div>
+        </div>
+
+        <div class="slide-decoration">
+          <div class="deco-circle">
+            <div class="deco-inner">
+              <div class="deco-pct">60%</div>
+              <div class="deco-pct-label">Dials go<br>nowhere</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════
+           SLIDE 2 — EXECUTIVE SUMMARY
+      ════════════════════════════════════════════════ -->
+      <div class="slide" id="slide-2">
+        <div class="slide-eyebrow">Executive Summary</div>
+        <div class="slide-heading">The headline numbers — and the one fix that matters most.</div>
+
+        <div class="kpi-row cols-4">
+          <div class="kpi-card highlight">
+            <div class="kpi-number">4.5%</div>
+            <div class="kpi-label">Blended Conversion</div>
+            <div class="kpi-sub">18 orders / 400 calls</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-number">18</div>
+            <div class="kpi-label">Orders Placed</div>
+            <div class="kpi-sub">Last-touch, 5-day window</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-number">162</div>
+            <div class="kpi-label">Real Conversations</div>
+            <div class="kpi-sub">Out of 400 answered</div>
+          </div>
+          <div class="kpi-card danger-card">
+            <div class="kpi-number">~60%</div>
+            <div class="kpi-label">Never a Conversation</div>
+            <div class="kpi-sub">Silent + voicemail dials</div>
+          </div>
+        </div>
+
+        <div class="cols-2 mt-32" style="flex:1;align-items:center;">
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;">Core Thesis</div>
+            <div style="font-size:20px;font-weight:700;line-height:1.5;color:var(--ink);">The bot <span class="blue">harvests intent</span>, it doesn't sell — and <span style="color:var(--danger);">~60% of dials never reach a person</span>, so Mokobara pays for calls that go nowhere.</div>
+            <div class="callout callout-blue mt-16" style="font-size:13px;">Fixing <strong>"who we reach"</strong> + <strong>"how we close"</strong> is the upside. This is a cost-efficiency story, not only a conversion story.</div>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;">Measurement Caveat</div>
+            <div class="callout callout-muted">Attribution is last-touch / 5-day window — this likely <em>over-credits</em> the bot. Real incrementality may be lower. Numbers are as-is from the dataset.</div>
+            <div style="font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;margin-top:20px;">ROI Framing</div>
+            <ul class="bullet-list">
+              <li><span class="dot"></span><span>Bolna charges Bitespeed per call → Bitespeed charges Mokobara</span></li>
+              <li class="danger-item"><span class="dot"></span><span>Every silent (196) + voicemail (42) dial = <strong>spend with zero return</strong></span></li>
+              <li class="ok"><span class="dot"></span><span>Fixing reach = direct ROI improvement, not a speculative bet</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════
+           SLIDE 3 — WHAT'S WORKING
+      ════════════════════════════════════════════════ -->
+      <div class="slide" id="slide-3">
+        <div class="slide-eyebrow">What's Working</div>
+        <div class="slide-heading">18 orders exist. The winner playbook is replicable.</div>
+
+        <div class="cols-2 mt-24" style="flex:1;align-items:start;gap:40px;">
+          <div>
+            <div class="card" style="border-left:4px solid var(--success);margin-bottom:20px;">
+              <div style="font-size:12px;font-weight:700;color:var(--success);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;">The Winner Pattern (16/18 Orders)</div>
+              <ul class="bullet-list">
+                <li class="ok"><span class="dot"></span><span><strong>Warm lead</strong> — customer remembers the cart, minimal friction</span></li>
+                <li class="ok"><span class="dot"></span><span><strong>Quick yes</strong> — decides within 2 exchanges, no long back-and-forth</span></li>
+                <li class="ok"><span class="dot"></span><span><strong>Fast link delivery</strong> — checkout link sent before hesitation sets in</span></li>
+                <li class="ok"><span class="dot"></span><span><strong>Single-session close</strong> — no "I'll think about it" loops</span></li>
+              </ul>
+            </div>
+            <div class="callout callout-blue">
+              <strong>Honest framing:</strong> Attribution noise means some "orders" may have happened anyway. The bot's job is to accelerate intent, not create it from scratch. These 18 cases show it <em>can</em> close when conditions are right.
+            </div>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;">Order Breakdown</div>
+            <div class="bar-chart">
+              <div class="bar-chart-row">
+                <div class="bar-chart-label">Warm + Quick Yes</div>
+                <div class="bar-chart-track"><div class="bar-chart-fill" style="width:89%;background:var(--success);"><span>16 orders</span></div></div>
+                <div class="bar-chart-val">89%</div>
+              </div>
+              <div class="bar-chart-row">
+                <div class="bar-chart-label">Cold / Hesitant</div>
+                <div class="bar-chart-track"><div class="bar-chart-fill" style="width:11%;background:var(--muted);"><span>2</span></div></div>
+                <div class="bar-chart-val">11%</div>
+              </div>
+            </div>
+            <div style="font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:20px 0 14px;">Prescription</div>
+            <div class="card card-sm">
+              <div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:8px;">Make more calls look like the 16</div>
+              <div style="font-size:13px;color:var(--muted);line-height:1.6;">Qualify intent earlier, deliver the link faster, and stop wasting dials on unreachable numbers. The playbook already works — the leaks are killing the volume.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════
+           SLIDE 4 — THE FUNNEL
+      ════════════════════════════════════════════════ -->
+      <div class="slide" id="slide-4">
+        <div class="slide-eyebrow">The Funnel</div>
+        <div class="slide-heading">Where 400 answered calls become 18 orders.</div>
+
+        <div class="cols-2 mt-24" style="flex:1;align-items:center;gap:56px;">
+          <div class="funnel">
+            <div class="funnel-row">
+              <div class="funnel-label">Answered calls</div>
+              <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:100%;background:var(--blue);"><span>400</span></div></div>
+              <div class="funnel-pct">100%</div>
+            </div>
+            <div class="funnel-row">
+              <div class="funnel-label" style="color:var(--danger);">↓ Silent + VM drain</div>
+              <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:40.5%;background:var(--blue-light);"><span>162 convos</span></div></div>
+              <div class="funnel-pct">40.5%<div class="funnel-drop">−59.5%</div></div>
+            </div>
+            <div class="funnel-row">
+              <div class="funnel-label">Link sent</div>
+              <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:30.5%;background:#60a5fa;"><span>122</span></div></div>
+              <div class="funnel-pct">30.5%</div>
+            </div>
+            <div class="funnel-row">
+              <div class="funnel-label" style="color:var(--warning);">↓ No-close leak</div>
+              <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:12%;background:#93c5fd;"><span>48</span></div></div>
+              <div class="funnel-pct">12%<div class="funnel-drop">−18.5%</div></div>
+            </div>
+            <div class="funnel-row">
+              <div class="funnel-label" style="color:var(--success);font-weight:800;">Orders</div>
+              <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:4.5%;background:var(--success);"><span>18</span></div></div>
+              <div class="funnel-pct" style="color:var(--success);font-weight:700;">4.5%</div>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div class="card card-sm" style="border-left:4px solid var(--danger);">
+              <div style="font-size:12px;font-weight:700;color:var(--danger);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Leak 1 — Biggest</div>
+              <div style="font-size:14px;font-weight:600;">238 calls never become conversations</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:4px;">196 silent + 42 voicemail = wasted spend</div>
+            </div>
+            <div class="card card-sm" style="border-left:4px solid var(--warning);">
+              <div style="font-size:12px;font-weight:700;color:var(--warning);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Leak 2 — Close Gap</div>
+              <div style="font-size:14px;font-weight:600;">Bot doesn't close: 162 convos → only 18 orders</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:4px;">No commitment gate before link delivery</div>
+            </div>
+            <div class="card card-sm" style="border-left:4px solid var(--purple);">
+              <div style="font-size:12px;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Leaks 3 & 4</div>
+              <div style="font-size:14px;font-weight:600;">Capability gaps + quality issues lose engaged buyers</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:4px;">Language, cart-link, hallucinations, talkover/latency</div>
+            </div>
+            <div class="callout callout-muted" style="margin-top:4px;">
+              Note: 400 = <em>answered</em> calls only. Separate unanswered set not analyzed here.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════
+           SLIDE 5 — LEAK 1a: SILENT CALLS
+      ════════════════════════════════════════════════ -->
+      <div class="slide" id="slide-5">
+        <div class="leak-header">
+          <span class="leak-badge">LEAK 1a · ROI DRAIN</span>
+          <span class="pill pill-danger">196 calls · 49%</span>
+          <span class="pill pill-blue" style="margin-left:auto;">P0 Fix</span>
+        </div>
+
+        <div style="font-size:28px;font-weight:800;line-height:1.2;margin-bottom:24px;color:var(--ink);">
+          Silent calls — <span style="color:var(--danger);">196 (49%)</span> of dials<br>
+          <span style="font-size:17px;font-weight:500;color:var(--muted);">Bolna answers, nobody talks. Client pays. Zero return.</span>
+        </div>
+
+        <div class="leak-cols" style="flex:1;">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;">Root Causes</div>
+            <ul class="root-cause-list">
+              <li><strong>AMD failure</strong> — Answering Machine Detection misses IVRs / voicemail-as-pickup</li>
+              <li><strong>Cold open</strong> — Bot speaks into silence; human doesn't know who's calling → hangs up</li>
+              <li><strong>ASR dead zone</strong> — Bolna receives audio but ASR returns nothing; bot waits, hangs</li>
+              <li><strong>Honest caveat:</strong> some silent calls are undetected machines — AMD fixes this too</li>
+            </ul>
+
+            <div class="dev-fix-box">
+              <div class="dev-fix-label">Dev Fix (P0)</div>
+              <ul>
+                <li>Enable / tune Bolna AMD; retry on machine detection with SMS fallback</li>
+                <li>Redesign cold open: "Hi, I'm calling about your [brand] bag in your cart — do you have 30 seconds?"</li>
+                <li>Add silence-detect → retry logic: 3 s of silence → escalate / disconnect</li>
+                <li>ASR confidence check before bot proceeds with script</li>
+              </ul>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div class="audio-block">
+              <div class="audio-label">Evidence — Silent call (bot monologue to dead air)</div>
+              <audio controls preload="none" src="assets/audio/silent-monologue.mp3"></audio>
+            </div>
+            <div class="audio-block">
+              <div class="audio-label">Evidence — Instant disconnect (opener → silence, ~5s)</div>
+              <audio controls preload="none" src="assets/audio/silent-instant.mp3"></audio>
+            </div>
+
+            <div class="transcript-bubble">
+              <div class="transcript-text">"Hello? … Hello? … [5 seconds of silence] … Thank you for your time!"</div>
+              <div class="transcript-meta">Bot monologue · call 7e1c2897 · duration: 12s · no human response detected</div>
+            </div>
+
+            <a class="explore-link" href="http://localhost:3000/failure-modes" target="_blank">
+              Explore live in analyzer →
+            </a>
+
+            <div class="card card-sm" style="background:var(--blue-subtle);border-color:var(--blue);margin-top:auto;">
+              <div style="font-size:13px;font-weight:600;color:var(--blue);">ROI Impact</div>
+              <div style="font-size:13px;color:var(--ink);margin-top:4px;">196 wasted calls × per-call cost = <strong>direct recoverable spend</strong>. AMD turns machine-pickups into retries instead of paid dead air.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════
+           SLIDE 6 — LEAK 1b: VOICEMAIL
+      ════════════════════════════════════════════════ -->
+      <div class="slide" id="slide-6">
+        <!-- SLIDE 6: Leak 1b — Voicemail (42, 10%) -->
+        <!-- Clone the leak-cols layout from slide 5 -->
+        <!-- Root causes: AMD miss, bot pitches to machine, client pays per call -->
+        <!-- Dev fix: AMD + SMS retry, never pitch a machine -->
+        <!-- Add audio: embed actual voicemail recording URL when available -->
+        <!-- ROI angle: same as silent — every voicemail = spend with zero return -->
+        <div class="leak-header">
+          <span class="leak-badge">LEAK 1b · ROI DRAIN</span>
+          <span class="pill pill-warning">42 calls · 10%</span>
+          <span class="pill pill-blue" style="margin-left:auto;">P0 Fix</span>
+        </div>
+        <div style="font-size:28px;font-weight:800;line-height:1.2;margin-bottom:24px;">
+          Voicemail dials — <span style="color:var(--warning);">42 (10%)</span> of answered calls<br>
+          <span style="font-size:17px;font-weight:500;color:var(--muted);">Bot pitches to a machine. No human. Pure cost.</span>
+        </div>
+        <div class="leak-cols" style="flex:1;">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;">Root Causes</div>
+            <ul class="root-cause-list">
+              <li>AMD not detecting voicemail pickup before bot starts script</li>
+              <li>Bot completes entire script to a recording — wastes full call duration</li>
+              <li>No retry-with-SMS fallback when voicemail detected</li>
+            </ul>
+            <div class="dev-fix-box">
+              <div class="dev-fix-label">Dev Fix (P0)</div>
+              <ul>
+                <li>AMD → voicemail branch: immediately disconnect + queue SMS</li>
+                <li>Never deliver the sales script to a machine</li>
+                <li>Schedule a human-time retry (next business hour)</li>
+              </ul>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div class="audio-block">
+              <div class="audio-label">Evidence — Bot pitching to voicemail (replace URL)</div>
+              <audio controls preload="none" src="assets/audio/voicemail.mp3"></audio>
+            </div>
+            <div class="callout callout-warning">
+              <strong>ROI angle:</strong> Silent (196) + Voicemail (42) = <strong>238 calls</strong> with zero conversion potential. This is ~59.5% of all answered calls. Fixing AMD alone recovers this spend.
+            </div>
+            <a class="explore-link" href="http://localhost:3000/failure-modes" target="_blank">Explore live in analyzer →</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════
+           SLIDE 7 — LEAK 2: BOT DOESN'T CLOSE
+      ════════════════════════════════════════════════ -->
+      <div class="slide" id="slide-7">
+        <!-- SLIDE 7: Leak 2 — The bot doesn't close (passive/no-real-close, 38–49 calls) -->
+        <!-- Root cause: bot delivers link without commitment gate; passive "let me know" close -->
+        <!-- Dev fix: commitment gate before link — "should I send the link to complete your order?" -->
+        <!-- Audio evidence: ed449e4c, 74403dba — embed when URLs available -->
+        <!-- Quote bubble: example of passive close from transcript -->
+        <div class="leak-header">
+          <span class="leak-badge">LEAK 2 · CLOSE GAP</span>
+          <span class="pill pill-warning">38–49 calls</span>
+          <span class="pill pill-blue" style="margin-left:auto;">P0 Fix</span>
+        </div>
+        <div style="font-size:28px;font-weight:800;line-height:1.2;margin-bottom:24px;">
+          The bot doesn't close — <span style="color:var(--warning);">no commitment gate</span><br>
+          <span style="font-size:17px;font-weight:500;color:var(--muted);">Link sent. Customer vanishes. Conversion = 0.</span>
+        </div>
+        <div class="leak-cols" style="flex:1;">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;">Root Causes</div>
+            <ul class="root-cause-list">
+              <li>Bot sends link without asking "should I send it?" — no micro-commitment</li>
+              <li>Close line is passive: "Let me know if you need anything"</li>
+              <li>No urgency, no follow-through if link unopened</li>
+              <li>Engaged buyers lose momentum after call ends</li>
+            </ul>
+            <div class="dev-fix-box">
+              <div class="dev-fix-label">Dev Fix (P0)</div>
+              <ul>
+                <li>Add commitment gate: "Would you like me to send the checkout link now?"</li>
+                <li>Replace passive close with active: "I'm sending it now — you'll get it in seconds."</li>
+                <li>If link sent but unopened after 10 min → trigger SMS nudge</li>
+              </ul>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div class="audio-block">
+              <div class="audio-label">Evidence — Passive close (replace URL)</div>
+              <audio controls preload="none" src="assets/audio/passive-close.mp3"></audio>
+            </div>
+            <div class="transcript-bubble">
+              <div class="transcript-text">"Here's your checkout link! Feel free to complete your order whenever you're ready. Let me know if you need anything else!"</div>
+              <div class="transcript-meta">Passive close · no commitment · customer never returns · call ed449e4c</div>
+            </div>
+            <a class="explore-link" href="http://localhost:3000/calls?drop_reason=passive_close_no_commitment" target="_blank">Explore live in analyzer →</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════
+           SLIDE 8 — LEAK 3: CAPABILITY GAPS
+      ════════════════════════════════════════════════ -->
+      <div class="slide" id="slide-8">
+        <!-- SLIDE 8: Leak 3 — Capability gaps (cart-link failure, language lock, hallucination/grounding) -->
+        <!-- Anchor audio: f170b42f (554s call) — long call, engaged buyer, bot fails on capability -->
+        <!-- NOT price — that's out of scope (slide 10) -->
+        <!-- Root causes: can't fetch cart, English-only, makes up product details -->
+        <!-- Dev fixes: P1 — real-time cart API, Hindi/multilingual, product grounding -->
+        <div class="leak-header">
+          <span class="leak-badge">LEAK 3 · CAPABILITY</span>
+          <span class="pill pill-purple">Engaged Buyers Lost</span>
+          <span class="pill pill-warning" style="margin-left:auto;">P1 Fix</span>
+        </div>
+        <div style="font-size:28px;font-weight:800;line-height:1.2;margin-bottom:24px;">
+          Capability gaps lose <span style="color:var(--purple);">engaged, ready-to-buy</span> customers<br>
+          <span style="font-size:17px;font-weight:500;color:var(--muted);">Cart-link failures · language lock · hallucinated product details</span>
+        </div>
+        <div class="leak-cols" style="flex:1;">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;">Root Causes</div>
+            <ul class="root-cause-list">
+              <li><strong>Can't change the cart</strong> — bot says "I can't change it" instead of sending an updated cart link</li>
+              <li><strong>Unprompted language switching</strong> — bot flip-flops Hindi/English without the customer asking, creating friction</li>
+              <li><strong>Hallucination / grounding</strong> — bot gives contradictory product info (e.g. self-contradicts on colour)</li>
+            </ul>
+            <div class="dev-fix-box">
+              <div class="dev-fix-label">Dev Fix (P1)</div>
+              <ul>
+                <li>Give the bot a tool to generate & send an updated cart/checkout link on request</li>
+                <li>Detect the customer's language from their speech and lock to it; switch only to mirror them</li>
+                <li>Ground product answers (colour/variant/availability) in the catalog; no free-form claims</li>
+              </ul>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div class="audio-block">
+              <div class="audio-label">Evidence — 554s call, engaged buyer, capability fail (replace URL)</div>
+              <audio controls preload="none" src="assets/audio/capability-554s.mp3"></audio>
+            </div>
+            <div class="transcript-bubble">
+              <div class="transcript-text">Zara: "…available in Sunray colour only." → moments later → "Sunray actually looks like navy blue, so it's navy blue." (self-contradiction)</div>
+              <div class="transcript-meta">Cart + language + hallucination in one 554s engaged call · f170b42f</div>
+            </div>
+            <a class="explore-link" href="http://localhost:3000/calls/f170b42f-32ad-419a-97ec-67417cf3619e" target="_blank">Explore live in analyzer →</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════
+           SLIDE 9 — LEAK 4: QUALITY
+      ════════════════════════════════════════════════ -->
+      <div class="slide" id="slide-9">
+        <!-- SLIDE 9: Leak 4 — Quality issues (~23 calls) -->
+        <!-- Talkover/latency/repetition + human-handoff loop -->
+        <!-- Audio: 7b16a6ca — human-handoff loop example -->
+        <!-- Dev fixes: barge-in/VAD, escalation path, de-dup response logic -->
+        <div class="leak-header">
+          <span class="leak-badge">LEAK 4 · QUALITY</span>
+          <span class="pill pill-warning">~23 calls affected</span>
+          <span class="pill pill-blue" style="margin-left:auto;">P1 Fix</span>
+        </div>
+        <div style="font-size:28px;font-weight:800;line-height:1.2;margin-bottom:24px;">
+          Quality friction: talkover, latency, repetition, <span style="color:var(--warning);">handoff loops</span><br>
+          <span style="font-size:17px;font-weight:500;color:var(--muted);">Buyers hang up out of frustration, not disinterest.</span>
+        </div>
+        <div class="leak-cols" style="flex:1;">
+          <div>
+            <ul class="root-cause-list">
+              <li><strong>Talkover</strong> — bot interrupts customer mid-sentence (VAD not tuned)</li>
+              <li><strong>Latency spikes</strong> — noticeable pause before bot responds; kills conversation flow</li>
+              <li><strong>Repetition</strong> — bot re-asks questions already answered; customer disengages</li>
+              <li><strong>Handoff loop</strong> — "let me transfer you" → no agent → bot resumes → customer hangs up</li>
+            </ul>
+            <div class="dev-fix-box">
+              <div class="dev-fix-label">Dev Fix (P1)</div>
+              <ul>
+                <li>Enable barge-in / tune VAD so customer can interrupt</li>
+                <li>Implement real escalation path: if human requested → SMS + ticket, don't loop</li>
+                <li>Add context memory within call to avoid re-asking answered questions</li>
+              </ul>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div class="audio-block">
+              <div class="audio-label">Evidence — Human-handoff loop (replace URL)</div>
+              <audio controls preload="none" src="assets/audio/handoff.mp3"></audio>
+            </div>
+            <div class="transcript-bubble">
+              <div class="transcript-text">"Customer: Can I speak to someone? Bot: Let me connect you… [pause] …So as I was saying about your cart…"</div>
+              <div class="transcript-meta">Handoff loop · customer frustration · call 7b16a6ca</div>
+            </div>
+            <a class="explore-link" href="http://localhost:3000/calls?drop_reason=bot_talkover_or_latency" target="_blank">Explore live in analyzer →</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════
+           SLIDE 10 — OUT OF SCOPE (BRAND-OWNED)
+      ════════════════════════════════════════════════ -->
+      <div class="slide" id="slide-10">
+        <!-- SLIDE 10: Out of scope — Discount wall (brand-owned, handed to Mokobara) -->
+        <!-- Named honestly: customers ask for discount, bot can't help, call ends -->
+        <!-- This is NOT a Bitespeed fix — it's Mokobara's pricing/policy decision -->
+        <!-- Recommendation: Mokobara to decide if a cart-recovery discount makes sense -->
+        <div class="slide-eyebrow">Out of Scope — Brand-Owned</div>
+        <div class="slide-heading" style="max-width:700px;">The discount wall: real signal, handed to Mokobara.</div>
+
+        <div class="cols-2 mt-32" style="flex:1;align-items:center;">
+          <div>
+            <div class="callout callout-muted" style="margin-bottom:20px;">
+              This section names a pattern we found — but it's <strong>not a Bitespeed fix</strong>. It's a Mokobara brand/pricing decision. We're handing it off, not recommending a solution.
+            </div>
+            <ul class="bullet-list">
+              <li class="warn"><span class="dot"></span><span>Meaningful share of calls ends when customer asks for a discount and bot can't offer one</span></li>
+              <li class="warn"><span class="dot"></span><span>Bot correctly says it can't offer discounts — this is <em>right behavior</em> given current scope</span></li>
+              <li><span class="dot"></span><span>Whether to introduce a cart-recovery discount is a brand and margin decision for Mokobara</span></li>
+              <li><span class="dot"></span><span>We do <strong>not</strong> recommend a specific discount amount or strategy — that's yours to own</span></li>
+            </ul>
+          </div>
+          <div class="card" style="border:2px dashed var(--border);background:var(--bg);text-align:center;padding:48px 32px;">
+            <div style="font-size:40px;margin-bottom:16px;">🏷️</div>
+            <div style="font-size:18px;font-weight:700;color:var(--ink);margin-bottom:8px;">Discount Wall</div>
+            <div style="font-size:14px;color:var(--muted);line-height:1.6;">Signal surfaced. Decision deferred to Mokobara. Not a bot problem — a policy question.</div>
+            <div class="pill pill-warning" style="margin:16px auto 0;display:inline-flex;">ACTION: Mokobara to review</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════
+           SLIDE 11 — POTENTIAL UPLIFT
+      ════════════════════════════════════════════════ -->
+      <div class="slide" id="slide-11">
+        <!-- SLIDE 11: Potential uplift — honest sizing per fix -->
+        <!-- AMD/silent fix → recover ~196 wasted dials → more conversations → compounding effect -->
+        <!-- Close-rate fix → recover partial of 162 convos that didn't close -->
+        <!-- Capability fixes → retain more engaged buyers -->
+        <!-- NO inflated numbers. Conservative estimates. -->
+        <div class="slide-eyebrow">Potential Uplift</div>
+        <div class="slide-heading">Honest sizing — what each fix could recover.</div>
+
+        <div class="cols-3 mt-24" style="flex:1;align-items:start;">
+          <div class="card" style="border-top:4px solid var(--danger);">
+            <div style="font-size:12px;font-weight:700;color:var(--danger);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;">P0 — Reach Fix (AMD)</div>
+            <div style="font-size:32px;font-weight:900;color:var(--ink);">238</div>
+            <div style="font-size:13px;color:var(--muted);margin-top:4px;margin-bottom:16px;">wasted dials/week (silent + voicemail)</div>
+            <ul class="bullet-list" style="gap:8px;">
+              <li><span class="dot" style="background:var(--danger);"></span><span style="font-size:13px;">Recover spend on calls that reach no one</span></li>
+              <li><span class="dot" style="background:var(--danger);"></span><span style="font-size:13px;">Each real pickup recovered enters the 162-convo funnel (~11% close)</span></li>
+              <li><span class="dot" style="background:var(--danger);"></span><span style="font-size:13px;">Part are machines → AMD reclaims as retries, not "lost humans"</span></li>
+            </ul>
+          </div>
+          <div class="card" style="border-top:4px solid var(--warning);">
+            <div style="font-size:12px;font-weight:700;color:var(--warning);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;">P0 — Close Rate Fix</div>
+            <div style="font-size:32px;font-weight:900;color:var(--ink);">38</div>
+            <div style="font-size:13px;color:var(--muted);margin-top:4px;margin-bottom:16px;">engaged calls with no real close</div>
+            <ul class="bullet-list" style="gap:8px;">
+              <li><span class="dot" style="background:var(--warning);"></span><span style="font-size:13px;">Commitment gate recaptures hesitant buyers before they drop</span></li>
+              <li><span class="dot" style="background:var(--warning);"></span><span style="font-size:13px;">Unopened-link SMS nudge recovers more</span></li>
+              <li><span class="dot" style="background:var(--warning);"></span><span style="font-size:13px;">Even a fraction lifts orders from the same call volume</span></li>
+            </ul>
+          </div>
+          <div class="card" style="border-top:4px solid var(--purple);">
+            <div style="font-size:12px;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;">P1 — Capability Fixes</div>
+            <div style="font-size:32px;font-weight:900;color:var(--ink);">Qualit.</div>
+            <div style="font-size:13px;color:var(--muted);margin-top:4px;margin-bottom:16px;">Hard to size; clear directional upside</div>
+            <ul class="bullet-list" style="gap:8px;">
+              <li><span class="dot" style="background:var(--purple);"></span><span style="font-size:13px;">Hindi support unlocks new buyer segment</span></li>
+              <li><span class="dot" style="background:var(--purple);"></span><span style="font-size:13px;">Cart-link reliability removes drop-offs</span></li>
+              <li><span class="dot" style="background:var(--purple);"></span><span style="font-size:13px;">Trust from grounded product answers</span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout callout-muted mt-16">All numbers are directional estimates based on the 1-week dataset. Attribution remains last-touch / 5-day. Actual incrementality may differ.</div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════
+           SLIDE 12 — MY APPROACH
+      ════════════════════════════════════════════════ -->
+      <div class="slide" id="slide-12">
+        <!-- SLIDE 12: How I got here — methodology / credibility -->
+        <!-- Listened to calls → built reusable analyzer → taxonomy → validated (10-agent cross-check + evals) -->
+        <!-- Positions the work as rigorous, not vibes-based -->
+        <div class="slide-eyebrow">Methodology</div>
+        <div class="slide-heading">How I got here — rigor, not vibes.</div>
+
+        <div class="cols-2 mt-24" style="flex:1;align-items:start;">
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div class="card card-sm" style="border-left:4px solid var(--blue);">
+              <div style="font-size:13px;font-weight:700;margin-bottom:6px;">Step 1 — Listen</div>
+              <div style="font-size:13px;color:var(--muted);">Listened to representative samples across all outcome categories. Built intuition before building code.</div>
+            </div>
+            <div class="card card-sm" style="border-left:4px solid var(--blue);">
+              <div style="font-size:13px;font-weight:700;margin-bottom:6px;">Step 2 — Taxonomy</div>
+              <div style="font-size:13px;color:var(--muted);">Defined a call outcome taxonomy: silent, voicemail, conversation (closed / unclosed / link sent), and leak categories.</div>
+            </div>
+            <div class="card card-sm" style="border-left:4px solid var(--blue);">
+              <div style="font-size:13px;font-weight:700;margin-bottom:6px;">Step 3 — Analyzer</div>
+              <div style="font-size:13px;color:var(--muted);">Built a reusable transcript-analysis pipeline (multi-provider free LLMs — Groq/Gemini — with batching, caching + structured evals). Processes all 400 calls with consistent labels.</div>
+            </div>
+            <div class="card card-sm" style="border-left:4px solid var(--success);">
+              <div style="font-size:13px;font-weight:700;margin-bottom:6px;">Step 4 — Validation</div>
+              <div style="font-size:13px;color:var(--muted);">10-agent cross-check on ambiguous cases + golden-label evals. Self-scoring vs manual review. Caught and corrected edge cases.</div>
+            </div>
+          </div>
+          <div>
+            <div class="transcript-bubble" style="margin-bottom:20px;">
+              <div class="transcript-text">Every finding in this deck is traceable to a real call recording. The analyzer output is auditable — no black-box conclusions.</div>
+              <div class="transcript-meta">Validation principle · all 400 calls labeled + linked</div>
+            </div>
+            <div class="callout callout-blue">
+              The same pipeline is <strong>reusable across any Bolna/AI-voice client</strong>. This analysis took days, not weeks, because of the tooling built alongside it.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════
+           SLIDE 13 — ROADMAP
+      ════════════════════════════════════════════════ -->
+      <div class="slide" id="slide-13">
+        <!-- SLIDE 13: Roadmap — P0/P1/P2, maps to LEAKS_AND_TICKETS.md -->
+        <div class="slide-eyebrow">Roadmap</div>
+        <div class="slide-heading">If I owned this — P0 / P1 / P2.</div>
+
+        <div class="roadmap mt-24">
+          <div class="roadmap-col">
+            <div class="roadmap-phase p0">P0 — Ship this week</div>
+            <div class="roadmap-item"><strong>AMD + silence detection</strong><span>Fix wasted silent/VM dials · biggest ROI lever</span></div>
+            <div class="roadmap-item"><strong>Cold-open redesign</strong><span>Human-friendly first 3 seconds</span></div>
+            <div class="roadmap-item"><strong>Commitment gate</strong><span>"Should I send the link?" before delivery</span></div>
+            <div class="roadmap-item"><strong>Active close</strong><span>Replace passive "let me know" with direct ask</span></div>
+          </div>
+          <div class="roadmap-col">
+            <div class="roadmap-phase p1">P1 — Next sprint</div>
+            <div class="roadmap-item"><strong>Cart-link API</strong><span>Real-time link generation, always valid</span></div>
+            <div class="roadmap-item"><strong>Hindi / multilingual</strong><span>TTS + ASR for primary audience</span></div>
+            <div class="roadmap-item"><strong>Product grounding</strong><span>No hallucinated specs — live catalog</span></div>
+            <div class="roadmap-item"><strong>Barge-in / VAD tuning</strong><span>Stop interrupting customers</span></div>
+          </div>
+          <div class="roadmap-col">
+            <div class="roadmap-phase p2">P2 — Following cycle</div>
+            <div class="roadmap-item"><strong>Escalation path</strong><span>Real human handoff; no loop</span></div>
+            <div class="roadmap-item"><strong>Link-opened nudge</strong><span>SMS if checkout link not opened in 10 min</span></div>
+            <div class="roadmap-item"><strong>Context memory</strong><span>No re-asking within same call</span></div>
+            <div class="roadmap-item"><strong>Retry scheduling</strong><span>Call back at human-hours if VM</span></div>
+          </div>
+        </div>
+        <div class="callout callout-muted mt-16" style="font-size:12px;">Full ticket specs in LEAKS_AND_TICKETS.md — devs can ticket directly from that doc.</div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════
+           SLIDE 14 — THE ANALYZER + AI EVALS
+      ════════════════════════════════════════════════ -->
+      <div class="slide" id="slide-14">
+        <!-- SLIDE 14: The analyzer + AI-evals — reusable across 5000 brands, cost-efficient -->
+        <!-- free-tier + batching + structural free filter, self-scoring vs golden labels -->
+        <!-- Trust + scale story — this is a product, not a one-off -->
+        <div class="slide-eyebrow">The Analyzer + AI Evals</div>
+        <div class="slide-heading">A reusable engine — not a one-off analysis.</div>
+
+        <div class="cols-2 mt-24" style="flex:1;align-items:start;">
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <ul class="bullet-list">
+              <li class="ok"><span class="dot"></span><span><strong>Reusable across 5000+ brands</strong> — same pipeline, plug in any Bolna client's transcript dump</span></li>
+              <li class="ok"><span class="dot"></span><span><strong>Cost-efficient</strong> — free-tier + batching + structural pre-filter cuts API spend dramatically</span></li>
+              <li class="ok"><span class="dot"></span><span><strong>Self-scoring</strong> — evals run against golden labels; accuracy tracked per category</span></li>
+              <li class="ok"><span class="dot"></span><span><strong>10-agent cross-check</strong> — ambiguous cases reviewed by multiple model runs; majority vote</span></li>
+              <li class="ok"><span class="dot"></span><span><strong>Auditable</strong> — every label linked to a call recording; no black-box outputs</span></li>
+            </ul>
+            <a class="explore-link" href="http://localhost:3000/" target="_blank" style="align-self:flex-start;">Explore the live analyzer →</a>
+          </div>
+          <div class="card" style="background:var(--ink);border-color:transparent;padding:28px;">
+            <img src="assets/bitespeed-logo.png" alt="Bitespeed" style="height:22px;margin-bottom:16px;border-radius:4px;">
+            <div style="font-size:11px;font-weight:700;color:var(--blue-light);text-transform:uppercase;letter-spacing:.1em;margin-bottom:16px;">Scale Story</div>
+            <div style="font-size:36px;font-weight:900;color:#fff;line-height:1.1;margin-bottom:16px;">1 analysis<br><span style="color:var(--blue-light);">→ infinite clients</span></div>
+            <div style="font-size:14px;color:rgba(255,255,255,.55);line-height:1.6;">The work done for Mokobara becomes the template for every AI-voice client on Bitespeed. Evals improve with each new dataset. The more clients, the better the benchmarks.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════
+           SLIDE 15 — CONCLUSION / THE ASK
+      ════════════════════════════════════════════════ -->
+      <div class="slide" id="slide-15">
+        <!-- SLIDE 15: Conclusion / The ask -->
+        <!-- Three clear asks: (1) approve P0 tickets, (2) Mokobara to review discount wall, (3) schedule follow-up -->
+        <div style="display:flex;flex-direction:column;height:100%;justify-content:center;align-items:flex-start;max-width:780px;">
+          <div class="slide-eyebrow">Conclusion</div>
+          <div class="slide-title xl" style="margin-bottom:24px;">The fix is <span class="blue">clear.</span><br>The upside is <span class="blue">real.</span><br>Let's ship P0.</div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;width:100%;margin-top:8px;">
+            <div class="card" style="border-top:4px solid var(--blue);text-align:center;padding:20px 16px;">
+              <div style="font-size:24px;font-weight:900;color:var(--blue);margin-bottom:8px;">1</div>
+              <div style="font-size:13px;font-weight:700;margin-bottom:6px;">Approve P0 tickets</div>
+              <div style="font-size:12px;color:var(--muted);">AMD, cold-open, commitment gate — ship this week</div>
+            </div>
+            <div class="card" style="border-top:4px solid var(--warning);text-align:center;padding:20px 16px;">
+              <div style="font-size:24px;font-weight:900;color:var(--warning);margin-bottom:8px;">2</div>
+              <div style="font-size:13px;font-weight:700;margin-bottom:6px;">Discount wall → Mokobara</div>
+              <div style="font-size:12px;color:var(--muted);">Review internally; no recommendation from us</div>
+            </div>
+            <div class="card" style="border-top:4px solid var(--success);text-align:center;padding:20px 16px;">
+              <div style="font-size:24px;font-weight:900;color:var(--success);margin-bottom:8px;">3</div>
+              <div style="font-size:13px;font-weight:700;margin-bottom:6px;">Schedule follow-up</div>
+              <div style="font-size:12px;color:var(--muted);">Review P0 impact in 2 weeks; proceed to P1</div>
+            </div>
+          </div>
+
+          <div class="callout callout-blue mt-24" style="width:100%;">
+            <strong>Thank you.</strong> Every finding is traceable, every fix is ticketed. The analyzer stays on — it'll catch new patterns as call volume grows.
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;margin-top:28px;">
+            <img src="assets/bitespeed-logo.png" alt="Bitespeed" style="height:26px;border-radius:6px;">
+            <span style="color:var(--muted);font-weight:600;">×</span>
+            <img src="assets/mokobara-logo.png" alt="Mokobara" style="height:34px;border-radius:50%;">
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /stage -->
+  </div><!-- /viewport -->
+
+  <div id="nav-bar">
+    <img src="assets/bitespeed-logo.png" alt="Bitespeed" style="height:16px;opacity:.85;margin-right:14px;border-radius:3px;">
+    <div id="slide-counter">Slide <span id="cur">1</span> / <span id="tot"></span></div>
+    <div id="nav-hints">← → Space · Esc overview</div>
+    <div id="nav-controls">
+      <button class="nav-btn" id="prev-btn">← Prev</button>
+      <button class="nav-btn" id="next-btn">Next →</button>
+      <button class="nav-btn" id="overview-btn">⊞ Overview</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── OVERVIEW GRID ── -->
+<div id="overview">
+  <button class="overview-close" id="overview-close">✕ Close</button>
+</div>
+
+<script>
+(function(){
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+
+  // ── Build overview thumbs
+  const ov = document.getElementById('overview');
+  const ovClose = document.getElementById('overview-close');
+  const labels = [
+    'Title & Context','Executive Summary','What\'s Working','The Funnel',
+    'Leak 1a — Silent Calls','Leak 1b — Voicemail','Leak 2 — No Close',
+    'Leak 3 — Capability','Leak 4 — Quality','Out of Scope',
+    'Potential Uplift','My Approach','Roadmap','The Analyzer','Conclusion'
+  ];
+  slides.forEach((s, i) => {
+    const th = document.createElement('div');
+    th.className = 'overview-thumb' + (i === 0 ? ' active-thumb' : '');
+    th.innerHTML = `
+      <div style="width:100%;height:100%;background:${getBg(i)};display:flex;align-items:center;justify-content:center;font-size:11px;color:rgba(9,10,20,.4);font-weight:600;padding:8px;text-align:center;">
+        ${i+1}
+      </div>
+      <div class="thumb-label"><span class="thumb-num">${i+1}</span>${labels[i]||'Slide '+(i+1)}</div>`;
+    th.addEventListener('click', () => { goTo(i); toggleOverview(false); });
+    ov.appendChild(th);
+  });
+
+  function getBg(i){
+    if(i===0) return '#090A14';
+    if([4,5,6,7,8].includes(i)) return '#fff5f5';
+    return '#FAFAFA';
+  }
+
+  // ── Scale stage to viewport
+  function scale(){
+    const vw = window.innerWidth, vh = window.innerHeight - 44 - 3 /* nav+progress */;
+    const s = document.getElementById('stage');
+    const scl = Math.min(vw/1280, vh/720);
+    s.style.transform = `scale(${scl})`;
+    s.style.marginTop = `${(vh - 720*scl)/2}px`;
+  }
+  window.addEventListener('resize', scale); scale();
+
+  // ── Navigation
+  const fill = document.getElementById('progress-fill');
+  const curEl = document.getElementById('cur');
+  const totEl = document.getElementById('tot');
+  totEl.textContent = total;
+
+  function goTo(idx){
+    if(idx < 0 || idx >= total) return;
+    slides[current].classList.remove('active');
+    slides[current].classList.add('prev');
+    setTimeout(() => slides[current].classList.remove('prev'), 300);
+    current = idx;
+    slides[current].classList.add('active');
+    curEl.textContent = current + 1;
+    fill.style.width = ((current+1)/total*100) + '%';
+    // Update overview
+    document.querySelectorAll('.overview-thumb').forEach((t,i) => t.classList.toggle('active-thumb', i===current));
+  }
+
+  function next(){ goTo(current+1); }
+  function prev(){ goTo(current-1); }
+
+  document.getElementById('next-btn').addEventListener('click', next);
+  document.getElementById('prev-btn').addEventListener('click', prev);
+
+  function toggleOverview(show){
+    if(show === undefined) show = !ov.classList.contains('visible');
+    ov.classList.toggle('visible', show);
+  }
+  document.getElementById('overview-btn').addEventListener('click', () => toggleOverview(true));
+  ovClose.addEventListener('click', () => toggleOverview(false));
+
+  document.addEventListener('keydown', e => {
+    if(ov.classList.contains('visible')){ if(e.key==='Escape') toggleOverview(false); return; }
+    if(e.key==='ArrowRight'||e.key===' '){ e.preventDefault(); next(); }
+    else if(e.key==='ArrowLeft'){ e.preventDefault(); prev(); }
+    else if(e.key==='Escape'){ toggleOverview(true); }
+  });
+
+  // Init progress
+  fill.style.width = (1/total*100)+'%';
+})();
+</script>
+</body>
+</html>
