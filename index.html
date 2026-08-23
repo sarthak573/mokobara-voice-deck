@@ -630,18 +630,22 @@ audio { width: 100%; height: 36px; border-radius: 8px; }
               <ul>
                 <li>Add commitment gate: "Would you like me to send the checkout link now?"</li>
                 <li>Replace passive close with active: "I'm sending it now — you'll get it in seconds."</li>
-                <li>If link sent but unopened after 10 min → trigger SMS nudge</li>
+                <li>If link sent but unopened after 10 min → trigger a WhatsApp nudge</li>
               </ul>
             </div>
           </div>
           <div style="display:flex;flex-direction:column;gap:16px;">
             <div class="audio-block">
-              <div class="audio-label">Sample — Passive close (replace URL)</div>
+              <div class="audio-label">Sample 1 — Interested, then link dumped, no commitment (40s)</div>
               <audio controls preload="none" src="assets/audio/passive-close.mp3"></audio>
             </div>
-            <div class="transcript-bubble">
-              <div class="transcript-text">"Here's your checkout link! Feel free to complete your order whenever you're ready. Let me know if you need anything else!"</div>
-              <div class="transcript-meta">Passive close · no commitment · customer never returns · call ed449e4c</div>
+            <div class="audio-block">
+              <div class="audio-label">Sample 2 — "I need more time" → bot backs off &amp; ends, no close (47s)</div>
+              <audio controls preload="none" src="assets/audio/s7-74403dba-needtime.mp3"></audio>
+            </div>
+            <div class="audio-block">
+              <div class="audio-label">Sample 3 — Customer unsure on size → bot sends link instead of resolving (2m44s)</div>
+              <audio controls preload="none" src="assets/audio/s7-3a706498-sizeconfusion.mp3"></audio>
             </div>
             <a class="explore-link" href="http://localhost:3000/calls?drop_reason=passive_close_no_commitment" target="_blank">Explore live in analyzer →</a>
           </div>
@@ -685,12 +689,8 @@ audio { width: 100%; height: 36px; border-radius: 8px; }
           </div>
           <div style="display:flex;flex-direction:column;gap:16px;">
             <div class="audio-block">
-              <div class="audio-label">Sample — 554s call, engaged buyer, capability fail (replace URL)</div>
+              <div class="audio-label">Sample — One 554s call, 5 objections: cart-change refused, language flip-flop, colour self-contradiction</div>
               <audio controls preload="none" src="assets/audio/capability-554s.mp3"></audio>
-            </div>
-            <div class="transcript-bubble">
-              <div class="transcript-text">Zara: "…available in Sunray colour only." → moments later → "Sunray actually looks like navy blue, so it's navy blue." (self-contradiction)</div>
-              <div class="transcript-meta">Cart + language + hallucination in one 554s engaged call · f170b42f</div>
             </div>
             <a class="explore-link" href="http://localhost:3000/calls/f170b42f-32ad-419a-97ec-67417cf3619e" target="_blank">Explore live in analyzer →</a>
           </div>
@@ -711,36 +711,39 @@ audio { width: 100%; height: 36px; border-radius: 8px; }
           <span class="pill pill-blue" style="margin-left:auto;">P1 Fix</span>
         </div>
         <div style="font-size:28px;font-weight:800;line-height:1.2;margin-bottom:24px;">
-          Quality friction: talkover, latency, repetition, <span style="color:var(--warning);">handoff loops</span><br>
+          Quality friction: talkover, repetition, <span style="color:var(--warning);">handoff loops</span><br>
           <span style="font-size:17px;font-weight:500;color:var(--muted);">Buyers hang up out of frustration, not disinterest.</span>
         </div>
         <div class="leak-cols" style="flex:1;">
           <div>
             <ul class="root-cause-list">
-              <li><strong>Talkover</strong> — bot interrupts customer mid-sentence (VAD not tuned)</li>
-              <li><strong>Latency spikes</strong> — noticeable pause before bot responds; kills conversation flow</li>
-              <li><strong>Repetition</strong> — bot re-asks questions already answered; customer disengages</li>
-              <li><strong>Handoff loop</strong> — "let me transfer you" → no agent → bot resumes → customer hangs up</li>
+              <li><strong>Talkover</strong> — bot speaks over the customer mid-sentence (VAD not tuned)</li>
+              <li><strong>Repetition</strong> — bot re-says the same line; customer disengages</li>
+              <li><strong>Handoff loop</strong> — customer asks for a person → bot loops the same line instead of escalating</li>
             </ul>
             <div class="dev-fix-box">
               <div class="dev-fix-label">Solutions (P1)</div>
               <ul>
-                <li>Enable barge-in / tune VAD so customer can interrupt</li>
-                <li>Implement real escalation path: if human requested → SMS + ticket, don't loop</li>
-                <li>Add context memory within call to avoid re-asking answered questions</li>
+                <li>Enable barge-in / tune VAD so the customer can interrupt</li>
+                <li>Real escalation path: when a human is requested → hand off / log a ticket, don't loop</li>
+                <li>Add in-call memory so the bot doesn't repeat itself</li>
               </ul>
             </div>
           </div>
           <div style="display:flex;flex-direction:column;gap:16px;">
             <div class="audio-block">
-              <div class="audio-label">Sample — Human-handoff loop (replace URL)</div>
-              <audio controls preload="none" src="assets/audio/handoff.mp3"></audio>
+              <div class="audio-label">Sample — Talkover: bot speaks over the customer (91s)</div>
+              <audio controls preload="none" src="assets/audio/s9-talkover-0090bcc5.mp3"></audio>
             </div>
-            <div class="transcript-bubble">
-              <div class="transcript-text">"Customer: Can I speak to someone? Bot: Let me connect you… [pause] …So as I was saying about your cart…"</div>
-              <div class="transcript-meta">Handoff loop · customer frustration · call 7b16a6ca</div>
+            <div class="audio-block">
+              <div class="audio-label">Sample — Repetition: bot re-says the same line (40s)</div>
+              <audio controls preload="none" src="assets/audio/s9-repetition-63f18a55.mp3"></audio>
             </div>
-            <a class="explore-link" href="http://localhost:3000/calls?drop_reason=bot_talkover_or_latency" target="_blank">Explore live in analyzer →</a>
+            <div class="audio-block">
+              <div class="audio-label">Sample — Handoff loop: customer wants a person, bot loops (97s)</div>
+              <audio controls preload="none" src="assets/audio/s9-handoff-7e441eff.mp3"></audio>
+            </div>
+            <a class="explore-link" href="http://localhost:3000/calls?flag=talkover" target="_blank">Explore live in analyzer →</a>
           </div>
         </div>
       </div>
