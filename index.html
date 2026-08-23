@@ -500,36 +500,33 @@ audio { width: 100%; height: 36px; border-radius: 8px; }
           <div>
             <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;">Root Causes</div>
             <ul class="root-cause-list">
-              <li><strong>AMD failure</strong> — Answering Machine Detection misses IVRs / voicemail-as-pickup</li>
               <li><strong>Cold open</strong> — Bot speaks into silence; human doesn't know who's calling → hangs up</li>
-              <li><strong>ASR dead zone</strong> — Bolna receives audio but ASR returns nothing; bot waits, hangs</li>
+              <li><strong>AMD failure</strong> — Answering Machine Detection misses IVRs / voicemail-as-pickup</li>
               <li><strong>Honest caveat:</strong> some silent calls are undetected machines — AMD fixes this too</li>
             </ul>
 
             <div class="dev-fix-box">
-              <div class="dev-fix-label">Dev Fix (P0)</div>
+              <div class="dev-fix-label">Solutions (P0)</div>
               <ul>
-                <li>Enable / tune Bolna AMD; retry on machine detection with SMS fallback</li>
                 <li>Redesign cold open: "Hi, I'm calling about your [brand] bag in your cart — do you have 30 seconds?"</li>
+                <li>Enable / tune Bolna AMD; retry on machine detection with SMS fallback</li>
                 <li>Add silence-detect → retry logic: 3 s of silence → escalate / disconnect</li>
-                <li>ASR confidence check before bot proceeds with script</li>
               </ul>
             </div>
           </div>
 
           <div style="display:flex;flex-direction:column;gap:16px;">
             <div class="audio-block">
-              <div class="audio-label">Evidence — Silent call (bot monologue to dead air)</div>
+              <div class="audio-label">Evidence 1 — Bot monologue to dead air (14s)</div>
               <audio controls preload="none" src="assets/audio/silent-monologue.mp3"></audio>
             </div>
             <div class="audio-block">
-              <div class="audio-label">Evidence — Instant disconnect (opener → silence, ~5s)</div>
-              <audio controls preload="none" src="assets/audio/silent-instant.mp3"></audio>
+              <div class="audio-label">Evidence 2 — Bot pitches, then "are you still there?" to silence (19s)</div>
+              <audio controls preload="none" src="assets/audio/silent-8698092a.mp3"></audio>
             </div>
-
-            <div class="transcript-bubble">
-              <div class="transcript-text">"Hello? … Hello? … [5 seconds of silence] … Thank you for your time!"</div>
-              <div class="transcript-meta">Bot monologue · call 7e1c2897 · duration: 12s · no human response detected</div>
+            <div class="audio-block">
+              <div class="audio-label">Evidence 3 — Instant disconnect (opener → silence, ~5s)</div>
+              <audio controls preload="none" src="assets/audio/silent-instant.mp3"></audio>
             </div>
 
             <a class="explore-link" href="http://localhost:3000/failure-modes" target="_blank">
@@ -572,7 +569,7 @@ audio { width: 100%; height: 36px; border-radius: 8px; }
               <li>No retry-with-SMS fallback when voicemail detected</li>
             </ul>
             <div class="dev-fix-box">
-              <div class="dev-fix-label">Dev Fix (P0)</div>
+              <div class="dev-fix-label">Solutions (P0)</div>
               <ul>
                 <li>AMD → voicemail branch: immediately disconnect + queue SMS</li>
                 <li>Never deliver the sales script to a machine</li>
@@ -621,7 +618,7 @@ audio { width: 100%; height: 36px; border-radius: 8px; }
               <li>Engaged buyers lose momentum after call ends</li>
             </ul>
             <div class="dev-fix-box">
-              <div class="dev-fix-label">Dev Fix (P0)</div>
+              <div class="dev-fix-label">Solutions (P0)</div>
               <ul>
                 <li>Add commitment gate: "Would you like me to send the checkout link now?"</li>
                 <li>Replace passive close with active: "I'm sending it now — you'll get it in seconds."</li>
@@ -670,7 +667,7 @@ audio { width: 100%; height: 36px; border-radius: 8px; }
               <li><strong>Hallucination / grounding</strong> — bot gives contradictory product info (e.g. self-contradicts on colour)</li>
             </ul>
             <div class="dev-fix-box">
-              <div class="dev-fix-label">Dev Fix (P1)</div>
+              <div class="dev-fix-label">Solutions (P1)</div>
               <ul>
                 <li>Give the bot a tool to generate & send an updated cart/checkout link on request</li>
                 <li>Detect the customer's language from their speech and lock to it; switch only to mirror them</li>
@@ -718,7 +715,7 @@ audio { width: 100%; height: 36px; border-radius: 8px; }
               <li><strong>Handoff loop</strong> — "let me transfer you" → no agent → bot resumes → customer hangs up</li>
             </ul>
             <div class="dev-fix-box">
-              <div class="dev-fix-label">Dev Fix (P1)</div>
+              <div class="dev-fix-label">Solutions (P1)</div>
               <ul>
                 <li>Enable barge-in / tune VAD so customer can interrupt</li>
                 <li>Implement real escalation path: if human requested → SMS + ticket, don't loop</li>
