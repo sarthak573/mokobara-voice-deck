@@ -525,8 +525,8 @@ audio { width: 100%; height: 36px; border-radius: 8px; }
               <audio controls preload="none" src="assets/audio/nointro-2f31c88f-hi15.mp3"></audio>
             </div>
             <div class="audio-block">
-              <div class="audio-label">Sample 3 — "am I speaking with Kusuma?" → instant silence (7s)</div>
-              <audio controls preload="none" src="assets/audio/nointro-5a2077c5-en7.mp3"></audio>
+              <div class="audio-label">Sample 3 — No intro: "am I speaking with Abilasha?" → silence (7s)</div>
+              <audio controls preload="none" src="assets/audio/nointro-457e1cff-en7.mp3"></audio>
             </div>
 
             <a class="explore-link" href="http://localhost:3000/failure-modes" target="_blank">
@@ -564,23 +564,31 @@ audio { width: 100%; height: 36px; border-radius: 8px; }
           <div>
             <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;">Root Causes</div>
             <ul class="root-cause-list">
-              <li>AMD not detecting voicemail pickup before bot starts script</li>
-              <li>Bot completes entire script to a recording — wastes full call duration</li>
-              <li>No retry-with-SMS fallback when voicemail detected</li>
+              <li>AMD not detecting the machine before the bot starts its script</li>
+              <li>Bot delivers the full pitch to a recording — the whole call (and spend) is wasted</li>
+              <li>No fallback when a machine is detected — the attempt is simply burned</li>
             </ul>
             <div class="dev-fix-box">
               <div class="dev-fix-label">Solutions (P0)</div>
               <ul>
-                <li>AMD → voicemail branch: immediately disconnect + queue SMS</li>
-                <li>Never deliver the sales script to a machine</li>
-                <li>Schedule a human-time retry (next business hour)</li>
+                <li>AMD → detect the machine and disconnect immediately (never pitch a recording)</li>
+                <li>Send the checkout link via WhatsApp (the channel the bot already uses) instead of leaving a voicemail</li>
+                <li>Re-queue the number for a retry in a human-answer window</li>
               </ul>
             </div>
           </div>
           <div style="display:flex;flex-direction:column;gap:16px;">
             <div class="audio-block">
-              <div class="audio-label">Sample — Bot pitching to voicemail (replace URL)</div>
+              <div class="audio-label">Sample 1 — Voicemail greeting: "record your name and reason…" (6s)</div>
               <audio controls preload="none" src="assets/audio/voicemail.mp3"></audio>
+            </div>
+            <div class="audio-block">
+              <div class="audio-label">Sample 2 — Carrier notice: "…recording this call for the person you're trying to reach" (17s)</div>
+              <audio controls preload="none" src="assets/audio/voicemail-850b4cf1.mp3"></audio>
+            </div>
+            <div class="audio-block">
+              <div class="audio-label">Sample 3 — Undetected machine (AMD miss): "am I speaking with Kusuma?" → no human (7s)</div>
+              <audio controls preload="none" src="assets/audio/nointro-5a2077c5-en7.mp3"></audio>
             </div>
             <div class="callout callout-warning">
               <strong>ROI angle:</strong> Silent (196) + Voicemail (42) = <strong>238 calls</strong> with zero conversion potential. This is ~59.5% of all answered calls. Fixing AMD alone recovers this spend.
