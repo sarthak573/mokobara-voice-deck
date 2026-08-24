@@ -1032,7 +1032,40 @@ audio { width: 100%; height: 36px; border-radius: 8px; }
     s.style.transform = `scale(${scl})`;
     s.style.marginTop = `${(vh - 720*scl)/2}px`;
   }
-  window.addEventListener('resize', scale); scale();
+  window.addEventListener('resize', scale);
+  window.addEventListener('orientationchange', () => setTimeout(scale, 200));
+  scale();
+
+  // ── Mobile: swipe navigation (ignore swipes on audio/links/buttons)
+  const vpEl = document.getElementById('viewport');
+  let tsx = 0, tsy = 0, swipeOK = true;
+  vpEl.addEventListener('touchstart', (e) => {
+    const t = e.changedTouches[0]; tsx = t.clientX; tsy = t.clientY;
+    swipeOK = !e.target.closest('audio, input, a, button, .audio-block');
+  }, { passive: true });
+  vpEl.addEventListener('touchend', (e) => {
+    if (!swipeOK) return;
+    const t = e.changedTouches[0], dx = t.clientX - tsx, dy = t.clientY - tsy;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) { dx < 0 ? next() : prev(); }
+  }, { passive: true });
+
+  // ── Mobile: "rotate to landscape" hint on small portrait screens
+  const rh = document.createElement('div');
+  Object.assign(rh.style, { position: 'fixed', inset: '0', zIndex: '200', background: '#0d0d1a',
+    color: '#fff', display: 'none', flexDirection: 'column', alignItems: 'center',
+    justifyContent: 'center', gap: '14px', textAlign: 'center', padding: '32px' });
+  rh.innerHTML = '<div style="font-size:46px">&#8635;</div><div style="font-size:16px;font-weight:600;max-width:260px;line-height:1.4">Rotate your device to landscape for the best view</div>';
+  const rhBtn = document.createElement('button');
+  rhBtn.textContent = 'View anyway';
+  Object.assign(rhBtn.style, { background: '#026FFD', color: '#fff', border: 'none',
+    borderRadius: '8px', padding: '9px 18px', font: 'inherit', fontWeight: '600', cursor: 'pointer' });
+  rh.appendChild(rhBtn);
+  document.body.appendChild(rh);
+  let rhDismissed = false;
+  const mq = window.matchMedia('(max-width: 820px) and (orientation: portrait)');
+  function toggleRH() { rh.style.display = (mq.matches && !rhDismissed) ? 'flex' : 'none'; }
+  rhBtn.addEventListener('click', () => { rhDismissed = true; toggleRH(); });
+  mq.addEventListener('change', toggleRH); toggleRH();
 
   // ── Navigation
   const fill = document.getElementById('progress-fill');
