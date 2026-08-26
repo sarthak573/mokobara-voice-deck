@@ -668,7 +668,7 @@ audio { width: 100%; height: 36px; border-radius: 8px; }
         </div>
         <div style="font-size:28px;font-weight:800;line-height:1.2;margin-bottom:24px;">
           Capability gaps lose <span style="color:var(--purple);">engaged, ready-to-buy</span> customers<br>
-          <span style="font-size:17px;font-weight:500;color:var(--muted);">Cart-link failures · language lock · hallucinated product details</span>
+          <span style="font-size:17px;font-weight:500;color:var(--muted);">Cart-link failures · language lock</span>
         </div>
         <div class="leak-cols" style="flex:1;">
           <div>
@@ -676,20 +676,18 @@ audio { width: 100%; height: 36px; border-radius: 8px; }
             <ul class="root-cause-list">
               <li><strong>Can't change the cart</strong> — bot says "I can't change it" instead of sending an updated cart link</li>
               <li><strong>Unprompted language switching</strong> — bot flip-flops Hindi/English without the customer asking, creating friction</li>
-              <li><strong>Hallucination / grounding</strong> — bot gives contradictory product info (e.g. self-contradicts on colour)</li>
             </ul>
             <div class="dev-fix-box">
               <div class="dev-fix-label">Solutions (P1)</div>
               <ul>
                 <li>Give the bot a tool to generate & send an updated cart/checkout link on request</li>
                 <li>Detect the customer's language from their speech and lock to it; switch only to mirror them</li>
-                <li>Ground product answers (colour/variant/availability) in the catalog; no free-form claims</li>
               </ul>
             </div>
           </div>
           <div style="display:flex;flex-direction:column;gap:16px;">
             <div class="audio-block">
-              <div class="audio-label">Sample — One 554s call, 5 objections: cart-change refused, language flip-flop, colour self-contradiction</div>
+              <div class="audio-label">Sample — One 554s call: cart-change refused, language flip-flop</div>
               <audio controls preload="metadata" src="assets/audio/capability-554s.mp3"></audio>
             </div>
             <a class="explore-link" href="https://mokobara-analyzer.vercel.app/call/?id=f170b42f-32ad-419a-97ec-67417cf3619e" target="_blank">Explore live in analyzer →</a>
@@ -765,15 +763,17 @@ audio { width: 100%; height: 36px; border-radius: 8px; }
               This section names a pattern we found — but it's <strong>not a Bitespeed fix</strong>. It's a Mokobara brand/pricing decision. We're handing it off, not recommending a solution.
             </div>
             <ul class="bullet-list">
-              <li class="warn"><span class="dot"></span><span>Meaningful share of calls ends when customer asks for a discount and bot can't offer one</span></li>
-              <li class="warn"><span class="dot"></span><span>Bot correctly says it can't offer discounts — this is <em>right behavior</em> given current scope</span></li>
-              <li><span class="dot"></span><span>Whether to introduce a cart-recovery discount is a brand and margin decision for Mokobara</span></li>
-              <li><span class="dot"></span><span>We do <strong>not</strong> recommend a specific discount amount or strategy — that's yours to own</span></li>
+              <li class="warn"><span class="dot"></span><span>The bot already offers a fixed <strong>5% discount</strong> — the leak is customers who ask for <em>more</em> than 5%, hit a flat refusal, and drop</span></li>
+              <li class="warn"><span class="dot"></span><span><strong>~6–7% of engaged calls</strong> ask for extra discount (~2.5% of all 400) — small, but concentrated among otherwise ready-to-buy customers</span></li>
+              <li><span class="dot"></span><span>Bot correctly declines to exceed 5% — this is <em>right behavior</em> given current scope</span></li>
+              <li><span class="dot"></span><span>Whether to raise the cart-recovery discount is a brand and margin decision for Mokobara — we do <strong>not</strong> recommend an amount</span></li>
             </ul>
           </div>
           <div class="card" style="border:2px dashed var(--border);background:var(--bg);text-align:center;padding:48px 32px;">
             <div style="font-size:40px;margin-bottom:16px;">🏷️</div>
-            <div style="font-size:18px;font-weight:700;color:var(--ink);margin-bottom:8px;">Discount Wall</div>
+            <div style="font-size:18px;font-weight:700;color:var(--ink);margin-bottom:8px;">The Extra-Discount Wall</div>
+            <div style="font-size:32px;font-weight:800;color:var(--warning);margin:8px 0 2px;">~6–7%</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">of engaged calls want more than 5%</div>
             <div style="font-size:14px;color:var(--muted);line-height:1.6;">Signal surfaced. Decision deferred to Mokobara. Not a bot problem — a policy question.</div>
             <div class="pill pill-warning" style="margin:16px auto 0;display:inline-flex;">ACTION: Mokobara to review</div>
           </div>
